@@ -75,7 +75,7 @@ export class ConversationEngine {
   }
 
   private async simulateTyping(): Promise<void> {
-    const typingSpeed = Math.floor(Math.random() * (100 - 50 + 1) + 50);
+    const typingSpeed = Math.floor(Math.random() * (100 - 50 + 1) + 10);
     const messageLength = 100; // Assume an average message length
     const typingTime = typingSpeed * messageLength;
     

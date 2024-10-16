@@ -1,8 +1,9 @@
 // File: src/client/App.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
-import { Box, Typography, Input, Button, Sheet } from '@mui/joy';
+import { Box, Typography, Input, Button, Sheet, IconButton } from '@mui/joy';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 
 interface Message {
   text: string;
@@ -26,38 +27,18 @@ const theme = extendTheme({
       },
     },
   },
-  colorSchemes: {
-    light: {
-      palette: {
-        primary: {
-          solidBg: '#1976d2',
-          solidColor: '#ffffff',
-        },
-        neutral: {
-          solidBg: '#f0f0f0',
-          solidColor: '#000000',
-        },
-      },
-    },
-    dark: {
-      palette: {
-        primary: {
-          solidBg: '#90caf9',
-          solidColor: '#000000',
-        },
-        neutral: {
-          solidBg: '#303030',
-          solidColor: '#ffffff',
-        },
-      },
-    },
-  },
 });
 
+const STORAGE_KEY = 'carInsuranceChat';
+
 const App: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const storedMessages = localStorage.getItem(STORAGE_KEY);
+    return storedMessages ? JSON.parse(storedMessages) : [];
+  });
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -67,7 +48,11 @@ const App: React.FC = () => {
   useEffect(scrollToBottom, [messages]);
 
   useEffect(() => {
-    const startConversation = async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
+
+  const startConversation = useCallback(async () => {
+    if (messages.length === 0) {
       setIsTyping(true);
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -77,13 +62,17 @@ const App: React.FC = () => {
       const data = await response.json();
       setIsTyping(false);
       setMessages([{ text: data.message, isUser: false }]);
-    };
+    }
+  }, [messages]);
+
+  useEffect(() => {
     startConversation();
-  }, []);
+  }, [startConversation]);
 
   const handleSend = async () => {
     if (input.trim()) {
-      setMessages([...messages, { text: input, isUser: true }]);
+      const newMessages = [...messages, { text: input, isUser: true }];
+      setMessages(newMessages);
       setInput('');
       setIsTyping(true);
       const response = await fetch('/api/chat', {
@@ -93,9 +82,31 @@ const App: React.FC = () => {
       });
       const data = await response.json();
       setIsTyping(false);
-      setMessages(prev => [...prev, { text: data.message, isUser: false }]);
+      setMessages([...newMessages, { text: data.message, isUser: false }]);
     }
   };
+
+  const handleReset = () => {
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
+    startConversation();
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'R') {
+        event.preventDefault();
+        console.log('holi');
+        setShowReset(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <CssVarsProvider theme={theme}>
@@ -108,8 +119,18 @@ const App: React.FC = () => {
         margin: '0 auto', 
         padding: 2 
       }}>
-        <Typography level="h4" component="h1" sx={{ mb: 2 }}>
+        <Typography level="h4" component="h1" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
           Friendly Car Insurance Quote Chatbot
+          {showReset && (
+            <IconButton 
+              onClick={handleReset} 
+              size="sm" 
+              sx={{ ml: 2 }}
+              title="Reset conversation"
+            >
+              <RefreshRoundedIcon />
+            </IconButton>
+          )}
         </Typography>
         <Sheet 
           variant="outlined" 
@@ -132,18 +153,14 @@ const App: React.FC = () => {
             >
               <Sheet 
                 color={message.isUser ? 'primary' : 'neutral'}
-                variant="solid"
+                variant="soft"
                 sx={{ 
                   p: 2, 
                   borderRadius: 'lg',
                   maxWidth: '70%',
                 }}
               >
-                <Typography 
-                  sx={{ 
-                    color: message.isUser ? 'primary.solidColor' : 'neutral.solidColor',
-                  }}
-                >
+                <Typography>
                   {message.text}
                 </Typography>
               </Sheet>
@@ -153,13 +170,13 @@ const App: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
               <Sheet 
                 color="neutral"
-                variant="solid"
+                variant="soft"
                 sx={{ 
                   p: 2, 
                   borderRadius: 'lg',
                 }}
               >
-                <Typography sx={{ color: 'neutral.solidColor' }}>Typing...</Typography>
+                <Typography>Typing...</Typography>
               </Sheet>
             </Box>
           )}
