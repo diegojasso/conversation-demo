@@ -13,11 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const conversationEngine = new ConversationEngine();
 const quoteGenerator = new QuoteGenerator();
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.post('/chat', async (req, res) => {
+app.post('/api/chat', async (req, res) => {
   const userInput = req.body.message;
   const response = await conversationEngine.processUserInput(userInput);
 
@@ -31,6 +27,10 @@ app.post('/chat', async (req, res) => {
   } else {
     res.json({ message: response, isComplete: false });
   }
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port, () => {
