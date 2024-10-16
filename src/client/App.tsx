@@ -1,6 +1,7 @@
 // File: src/client/App.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { CssBaseline, CssVarsProvider, extendTheme } from '@mui/joy/styles';
+import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
+import CssBaseline from '@mui/joy/CssBaseline';
 import { Box, Typography, Input, Button, Sheet } from '@mui/joy';
 
 interface Message {
