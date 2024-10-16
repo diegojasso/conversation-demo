@@ -4,11 +4,24 @@ import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import { Box, Typography, Input, Button, Sheet, IconButton } from '@mui/joy';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import { keyframes } from '@emotion/react';
 
 interface Message {
   text: string;
   isUser: boolean;
+  id: number;
 }
+
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const theme = extendTheme({
   components: {
@@ -40,6 +53,7 @@ const App: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const [lastMessageId, setLastMessageId] = useState(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,9 +75,11 @@ const App: React.FC = () => {
       });
       const data = await response.json();
       setIsTyping(false);
-      setMessages([{ text: data.message, isUser: false }]);
+      const newId = lastMessageId + 1;
+      setLastMessageId(newId);
+      setMessages([{ text: data.message, isUser: false, id: newId }]);
     }
-  }, [messages]);
+  }, [messages, lastMessageId]);
 
   useEffect(() => {
     startConversation();
@@ -71,7 +87,9 @@ const App: React.FC = () => {
 
   const handleSend = async () => {
     if (input.trim()) {
-      const newMessages = [...messages, { text: input, isUser: true }];
+      const newUserMessageId = lastMessageId + 1;
+      const newMessages = [...messages, { text: input, isUser: true, id: newUserMessageId }];
+      setLastMessageId(newUserMessageId);
       setMessages(newMessages);
       setInput('');
       setIsTyping(true);
@@ -82,12 +100,15 @@ const App: React.FC = () => {
       });
       const data = await response.json();
       setIsTyping(false);
-      setMessages([...newMessages, { text: data.message, isUser: false }]);
+      const newBotMessageId = newUserMessageId + 1;
+      setLastMessageId(newBotMessageId);
+      setMessages([...newMessages, { text: data.message, isUser: false, id: newBotMessageId }]);
     }
   };
 
   const handleReset = () => {
     setMessages([]);
+    setLastMessageId(0);
     localStorage.removeItem(STORAGE_KEY);
     startConversation();
   };
@@ -96,7 +117,6 @@ const App: React.FC = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'R') {
         event.preventDefault();
-        console.log('holi');
         setShowReset(prev => !prev);
       }
     };
@@ -142,13 +162,14 @@ const App: React.FC = () => {
             borderRadius: 'md',
           }}
         >
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <Box 
-              key={index} 
+              key={message.id} 
               sx={{ 
                 display: 'flex', 
                 justifyContent: message.isUser ? 'flex-end' : 'flex-start',
                 mb: 2,
+                animation: `${fadeInUp} 0.3s ease-out`,
               }}
             >
               <Sheet 
@@ -167,7 +188,14 @@ const App: React.FC = () => {
             </Box>
           ))}
           {isTyping && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                justifyContent: 'flex-start', 
+                mb: 2,
+                animation: `${fadeInUp} 0.3s ease-out`,
+              }}
+            >
               <Sheet 
                 color="neutral"
                 variant="soft"
