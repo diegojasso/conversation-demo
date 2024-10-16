@@ -1,0 +1,72 @@
+// File: src/public/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Insurance Quote Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #chat-container { border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px; margin-bottom: 20px; }
+        #user-input { width: 70%; padding: 5px; }
+        #send-button { width: 25%; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Car Insurance Quote Chatbot</h1>
+    <div id="chat-container"></div>
+    <input type="text" id="user-input" placeholder="Type your message...">
+    <button id="send-button">Send</button>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        function addMessage(message, isUser = false) {
+            const messageElement = document.createElement('p');
+            messageElement.textContent = message;
+            messageElement.style.textAlign = isUser ? 'right' : 'left';
+            messageElement.style.color = isUser ? 'blue' : 'black';
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                userInput.value = '';
+
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    addMessage(data.message);
+                    if (data.isComplete) {
+                        userInput.disabled = true;
+                        sendButton.disabled = true;
+                    }
+                });
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Start the conversation
+        fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: '' })
+        })
+        .then(response => response.json())
+        .then(data => addMessage(data.message));
+    </script>
+</body>
+</html>
