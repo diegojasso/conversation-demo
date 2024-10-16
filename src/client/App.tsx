@@ -26,6 +26,32 @@ const theme = extendTheme({
       },
     },
   },
+  colorSchemes: {
+    light: {
+      palette: {
+        primary: {
+          solidBg: '#1976d2',
+          solidColor: '#ffffff',
+        },
+        neutral: {
+          solidBg: '#f0f0f0',
+          solidColor: '#000000',
+        },
+      },
+    },
+    dark: {
+      palette: {
+        primary: {
+          solidBg: '#90caf9',
+          solidColor: '#000000',
+        },
+        neutral: {
+          solidBg: '#303030',
+          solidColor: '#ffffff',
+        },
+      },
+    },
+  },
 });
 
 const App: React.FC = () => {
@@ -106,14 +132,20 @@ const App: React.FC = () => {
             >
               <Sheet 
                 color={message.isUser ? 'primary' : 'neutral'}
-                variant={message.isUser ? 'solid' : 'soft'}
+                variant="solid"
                 sx={{ 
                   p: 2, 
                   borderRadius: 'lg',
                   maxWidth: '70%',
                 }}
               >
-                <Typography>{message.text}</Typography>
+                <Typography 
+                  sx={{ 
+                    color: message.isUser ? 'primary.solidColor' : 'neutral.solidColor',
+                  }}
+                >
+                  {message.text}
+                </Typography>
               </Sheet>
             </Box>
           ))}
@@ -121,13 +153,13 @@ const App: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
               <Sheet 
                 color="neutral"
-                variant="soft"
+                variant="solid"
                 sx={{ 
                   p: 2, 
                   borderRadius: 'lg',
                 }}
               >
-                <Typography>Typing...</Typography>
+                <Typography sx={{ color: 'neutral.solidColor' }}>Typing...</Typography>
               </Sheet>
             </Box>
           )}

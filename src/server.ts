@@ -15,6 +15,8 @@ app.use(express.static(path.join(__dirname, '..', 'dist', 'public')));
 const conversationEngine = new ConversationEngine();
 const quoteGenerator = new QuoteGenerator();
 
+// In src/server.ts, update the /api/chat endpoint
+
 app.post('/api/chat', async (req, res) => {
   const userInput = req.body.message;
   const response = await conversationEngine.processUserInput(userInput);
@@ -23,7 +25,23 @@ app.post('/api/chat', async (req, res) => {
     const userInfo = conversationEngine.getUserInfo();
     const quote = quoteGenerator.generateQuote(userInfo);
     res.json({
-      message: `Alright, I've got your quote ready, ${userInfo.name}! 🎉 Based on the information you provided, your estimated monthly premium is $${quote.monthlyPremium} for ${quote.coverageLevel} coverage. This takes into account your age, driving experience, and the details of your ${userInfo.carYear} ${userInfo.carMake} ${userInfo.carModel}. How does that sound? If you have any questions about the quote or would like to explore other options, just let me know!`,
+      message: `Alright, ${userInfo.name}, I've got your quote ready! 🎉 
+      Based on the information you provided about your ${userInfo.carYear} ${userInfo.carMake} ${userInfo.carModel}, 
+      your age of ${userInfo.age}, and your ${userInfo.drivingExperience} years of driving experience, here's what I've calculated:
+
+      🚗 Monthly premium: $${quote.monthlyPremium}
+      💰 Annual premium: $${quote.annualPremium}
+      🛡️ Coverage level: ${quote.coverageLevel}
+
+      Here's a quick breakdown of how we arrived at this quote:
+      - Your age and driving experience played a role in determining your risk factor.
+      - The age of your car was taken into account.
+      - We considered whether your car make is classified as a luxury brand.
+
+      Remember, this is just an estimate. Many other factors can affect your actual premium, such as your driving record, 
+      location, and specific coverage options you choose.
+
+      Would you like to know more about the ${quote.coverageLevel} coverage, or do you have any questions about your quote?`,
       isComplete: true
     });
   } else {

@@ -10,5 +10,6 @@ export interface UserInfo {
   
   export interface QuoteResult {
     monthlyPremium: number;
+    annualPremium: number;
     coverageLevel: string;
   }
