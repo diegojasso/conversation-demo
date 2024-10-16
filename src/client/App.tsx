@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CssVarsProvider, extendTheme } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
-import { Box, Typography, Input, Button, Sheet, IconButton } from '@mui/joy';
+import { Box, Typography, Input, Button, Sheet, IconButton, Avatar } from '@mui/joy';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import { keyframes } from '@emotion/react';
 
@@ -12,14 +12,17 @@ interface Message {
   id: number;
 }
 
-const fadeInUp = keyframes`
-  from {
+const popIn = keyframes`
+  0% {
+    transform: scale(0.8) translateY(10px);
     opacity: 0;
-    transform: translateY(20px);
   }
-  to {
+  70% {
+    transform: scale(1.1) translateY(-5px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
     opacity: 1;
-    transform: translateY(0);
   }
 `;
 
@@ -128,6 +131,47 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const renderMessage = (message: Message) => (
+    <Box 
+      key={message.id} 
+      sx={{ 
+        display: 'flex', 
+        justifyContent: message.isUser ? 'flex-end' : 'flex-start',
+        alignItems: 'flex-end',
+        mb: 2,
+      }}
+    >
+      {!message.isUser && (
+        <Avatar
+          alt="Assistant"
+          src="./src/assets/avatar.png"  // Replace with actual path to assistant's avatar
+          sx={{ 
+            mr: 1, 
+            width: 32, 
+            height: 32,
+            animation: `${popIn} 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)`,
+          }}
+        />
+      )}
+      <Sheet 
+        color={message.isUser ? 'primary' : 'neutral'}
+        variant="soft"
+        sx={{ 
+          p: 2, 
+          borderRadius: 'lg',
+          maxWidth: 'calc(70% - 40px)',  // Adjusted to account for avatar width
+          animation: `${popIn} 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)`,
+          transformOrigin: message.isUser ? 'bottom right' : 'bottom left',
+        }}
+      >
+        <Typography>
+          {message.text}
+        </Typography>
+      </Sheet>
+      {message.isUser && <Box sx={{ width: 32, height: 32, ml: 1 }} />}
+    </Box>
+  );
+
   return (
     <CssVarsProvider theme={theme}>
       <CssBaseline />
@@ -162,46 +206,34 @@ const App: React.FC = () => {
             borderRadius: 'md',
           }}
         >
-          {messages.map((message) => (
-            <Box 
-              key={message.id} 
-              sx={{ 
-                display: 'flex', 
-                justifyContent: message.isUser ? 'flex-end' : 'flex-start',
-                mb: 2,
-                animation: `${fadeInUp} 0.3s ease-out`,
-              }}
-            >
-              <Sheet 
-                color={message.isUser ? 'primary' : 'neutral'}
-                variant="soft"
-                sx={{ 
-                  p: 2, 
-                  borderRadius: 'lg',
-                  maxWidth: '70%',
-                }}
-              >
-                <Typography>
-                  {message.text}
-                </Typography>
-              </Sheet>
-            </Box>
-          ))}
+          {messages.map(renderMessage)}
           {isTyping && (
             <Box 
               sx={{ 
                 display: 'flex', 
                 justifyContent: 'flex-start', 
+                alignItems: 'flex-end',
                 mb: 2,
-                animation: `${fadeInUp} 0.3s ease-out`,
               }}
             >
+              <Avatar
+                alt="Assistant"
+                src="./src/assets/avatar.png"  // Replace with actual path to assistant's avatar
+                sx={{ 
+                  mr: 1, 
+                  width: 32, 
+                  height: 32,
+                  animation: `${popIn} 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)`,
+                }}
+              />
               <Sheet 
                 color="neutral"
                 variant="soft"
                 sx={{ 
                   p: 2, 
                   borderRadius: 'lg',
+                  animation: `${popIn} 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)`,
+                  transformOrigin: 'bottom left',
                 }}
               >
                 <Typography>Typing...</Typography>
