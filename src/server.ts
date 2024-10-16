@@ -8,7 +8,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '..', 'dist', 'public')));
 
 const conversationEngine = new ConversationEngine();
 const quoteGenerator = new QuoteGenerator();
@@ -29,8 +31,10 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// The "catchall" handler: for any request that doesn't
+// match one above, send back the index.html file.
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'dist', 'public', 'index.html'));
 });
 
 app.listen(port, () => {
